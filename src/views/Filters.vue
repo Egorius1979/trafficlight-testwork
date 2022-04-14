@@ -1,28 +1,30 @@
 <template>
   <div class="filter">
-    <label>
-      <span>логин:</span>
-      <div><input type="text" v-model.trim="login" /></div>
-    </label>
+    <div>
+      <label>
+        <span>логин:</span>
+        <div><input type="text" v-model.trim="login" /></div>
+      </label>
 
-    <label>
-      <span>количество:</span>
-      <div class="amount flex">
-        <span>от <input type="number" v-model.number="from" /></span>
-        <span>до <input type="number" v-model.number="to" /></span>
-      </div>
-    </label>
+      <label>
+        <span>количество:</span>
+        <div class="amount flex">
+          <span>от <input type="number" v-model.number="from" /></span>
+          <span>до <input type="number" v-model.number="to" /></span>
+        </div>
+      </label>
 
-    <label>
-      <span>статус:</span>
-      <div><input type="text" v-model.trim="rank" /></div>
-    </label>
-    <!-- <button @click="setFilters"> -->
+      <label>
+        <span>статус:</span>
+        <div><input type="text" v-model.trim="rank" /></div>
+      </label>
+    </div>
     <div class="flex">
       <button @click="$emit('filter-members', login, from, to, rank)">
         применить
       </button>
       <router-link
+        class="url"
         :to="{
           name: 'Filtered',
           query: {
@@ -34,7 +36,6 @@
         }"
         >URL</router-link
       >
-      <!-- <button @click="setInitialValue">очистить</button> -->
     </div>
   </div>
 </template>
@@ -71,8 +72,10 @@ export default {
 
 <style lang="scss" scoped>
 .filter {
-  display: inline-block;
   text-align: start;
+  @media screen and (max-width: 400px) {
+    width: 90%;
+  }
 }
 
 label {
@@ -89,16 +92,42 @@ label {
     outline: none;
     border: 1px solid gray;
     border-radius: 5px;
+    @media screen and (max-width: 400px) {
+      width: 100%;
+    }
   }
 }
 
 .amount input {
-  width: 70px;
+  width: 60px;
+  @media screen and (max-width: 400px) {
+    width: 50%;
+  }
 }
 
 .flex {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  @media screen and (max-width: 400px) {
+    flex-direction: column;
+  }
+}
+
+button {
+  font-size: 18px;
+  padding: 5px 15px;
+  background: #778899;
+  border: 1px solid black;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+  &:active {
+    background: #000;
+  }
+  @media screen and (max-width: 400px) {
+    width: 100%;
+    margin-bottom: 20px;
+  }
 }
 </style>

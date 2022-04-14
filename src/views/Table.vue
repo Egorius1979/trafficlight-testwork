@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <table>
+    <table class="table">
       <tr>
         <th v-for="column in tabColumns" :key="column" @click="sorting(column)">
           <div class="flex">
@@ -16,13 +16,12 @@
         </th>
       </tr>
       <tr v-for="member in members || fullMembersArray" :key="member.id">
-        <td>{{ member.id }}</td>
-        <td>{{ member.login }}</td>
-        <td>{{ member.confirmedOrder }}</td>
-        <td>{{ member.rank }}</td>
+        <td :aria-label="tabColumns[0]">{{ member.id }}</td>
+        <td :aria-label="tabColumns[1]">{{ member.login }}</td>
+        <td :aria-label="tabColumns[2]">{{ member.confirmedOrder }}</td>
+        <td :aria-label="tabColumns[3]">{{ member.rank }}</td>
       </tr>
     </table>
-    {{ filteredFieldCounter }}
     <filters @filter-members="filterMembers" @initial-value="setInitialState" />
   </div>
 </template>
@@ -120,16 +119,47 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-table,
-td {
-  margin: auto;
-  border: 1px solid black;
+.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  .flex {
+    @extend .home;
+    flex-direction: row;
+  }
+}
+table {
+  margin: 0px auto 100px;
+  border: 1px solid gray;
   border-collapse: collapse;
-  padding: 5px;
+  padding: 10px 20px;
+  td {
+    @extend table;
+    margin: 0;
+  }
   th {
     @extend table;
     cursor: pointer;
     user-select: none;
+    background: #efefef;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  table tr {
+    display: block;
+    border-bottom: 2px solid #e8e9eb;
+  }
+  table td {
+    border: none;
+    display: block;
+    text-align: right;
+  }
+  table td:before {
+    content: attr(aria-label);
+    float: left;
+    font-weight: bold;
   }
 }
 
@@ -150,11 +180,5 @@ td {
   &-none {
     visibility: hidden;
   }
-}
-
-.flex {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 </style>
