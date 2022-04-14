@@ -38,12 +38,19 @@ export default new Vuex.Store({
         rank: 'Ценитель красоты',
       },
     ],
-    // url: '',
   },
   mutations: {
-    // SET_URL(state, login, from, to, rank) {
-    //   state.url = `?`;
-    // },
+    SORTING(state, key) {
+      typeof state.members[0][key] === 'string'
+        ? state.members.sort((a, b) => a[key].localeCompare(b[key]))
+        : state.members.sort((a, b) => a[key] - b[key]);
+    },
+    REVERSE(state) {
+      return state.members.reverse();
+    },
+    SET_INITIAL_ARRAY(state) {
+      return state.members.sort((a, b) => a.id - b.id);
+    },
   },
   actions: {},
   modules: {},

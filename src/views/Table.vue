@@ -1,8 +1,6 @@
 <template>
   <div class="home">
-    <!-- {{ members }} -->
     <table>
-      <!-- <thead> -->
       <tr>
         <th v-for="column in tabColumns" :key="column" @click="sorting(column)">
           <div class="flex">
@@ -17,37 +15,41 @@
           </div>
         </th>
       </tr>
-      <!-- </thead> -->
-      <!-- <tbody> -->
-      <tr v-for="member in members" :key="member.id">
+      <tr v-for="member in members || fullMembersArray" :key="member.id">
         <td>{{ member.id }}</td>
         <td>{{ member.login }}</td>
         <td>{{ member.confirmedOrder }}</td>
         <td>{{ member.rank }}</td>
       </tr>
-      <!-- </tbody> -->
     </table>
     {{ filteredFieldCounter }}
-    <filters @filter-members="filterMembers" />
+    <filters @filter-members="filterMembers" @initial-value="setInitialState" />
   </div>
 </template>
 
 <script>
 import Filters from '@/views/Filters';
 export default {
-  name: 'Home',
+  name: 'Table',
   components: { Filters },
   data() {
     return {
       tabColumns: ['Место', 'Логин', 'Подтвержденные заказы', 'Статус'],
-      members: this.$store.state.members,
+      fullMembersArray: this.$store.state.members,
+      members: null,
       field: 'Место',
       filteredFieldCounter: 1,
+      isFiltered: false,
     };
+  },
+  mounted() {
+    if (this.$route.name !== 'Home') {
+      this.$router.push({ name: 'Home' });
+    }
   },
   methods: {
     filterMembers(login, from, to, rank) {
-      this.members = this.$store.state.members
+      this.members = this.fullMembersArray
         .filter((member) => member.login.includes(login.toLowerCase()))
         .filter((member) => {
           if (!from && !to) {
@@ -61,12 +63,24 @@ export default {
         .filter((member) =>
           member.rank.toLowerCase().includes(rank.toLowerCase())
         );
+      this.isFiltered = true;
+    },
+    setInitialState() {
+      this.isFiltered = false;
+      this.field = 'Место';
+      this.filteredFieldCounter = 1;
+      this.members = null;
+      this.$store.commit('SET_INITIAL_ARRAY');
     },
     sorting(column) {
       if (this.field === column) {
         this.filteredFieldCounter += 1;
-        return this.members.reverse();
+        if (this.isFiltered) {
+          this.members.reverse();
+        }
+        return this.$store.commit('REVERSE');
       }
+
       this.field = column;
       this.filteredFieldCounter = 1;
       if (column === 'Логин') {
@@ -81,12 +95,27 @@ export default {
       return this.sorting1('confirmedOrder');
     },
     sorting1(key) {
-      typeof this.members[0][key] === 'string'
-        ? this.members.sort((a, b) => a[key].localeCompare(b[key]))
-        : this.members.sort((a, b) => a[key] - b[key]);
+      if (this.isFiltered) {
+        typeof this.members[0][key] === 'string'
+          ? this.members.sort((a, b) => a[key].localeCompare(b[key]))
+          : this.members.sort((a, b) => a[key] - b[key]);
+      }
+      this.$store.commit('SORTING', key);
+      console.log('table sorting: ', this.members);
     },
   },
-  computed: {},
+  watch: {
+    $route() {
+      if (this.$route.name === 'Filtered') {
+        this.filterMembers(
+          this.$route.query.login,
+          !+this.$route.query.from ? 0 : +this.$route.query.from,
+          !+this.$route.query.to ? 0 : +this.$route.query.to,
+          this.$route.query.rank
+        );
+      }
+    },
+  },
 };
 </script>
 
