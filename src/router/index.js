@@ -4,9 +4,6 @@ import Table from '../components/Table.vue';
 
 Vue.use(VueRouter);
 
-// console.log(VueRouter.START_LOCATION);
-// console.log(vm.isFiltered);
-
 const routes = [
   {
     path: '/',
