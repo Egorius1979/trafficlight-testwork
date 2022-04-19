@@ -16,7 +16,11 @@
 
       <label>
         <span>статус:</span>
-        <div><input type="text" v-model.trim="rank" /></div>
+        <select v-model="rank">
+          <option v-for="rank in ranksArray" :key="rank">
+            {{ rank }}
+          </option>
+        </select>
       </label>
     </div>
     <div class="flex">
@@ -49,6 +53,11 @@ export default {
       from: null,
       to: null,
       rank: '',
+      ranksArray: this.$store.state.members.reduce(
+        (acc, member) =>
+          acc.find((it) => it === member.rank) ? acc : [...acc, member.rank],
+        []
+      ),
     };
   },
   methods: {
@@ -95,6 +104,12 @@ label {
     @media screen and (max-width: 400px) {
       width: 100%;
     }
+  }
+  select {
+    @extend input;
+    width: 100%;
+    display: block;
+    background: #fff;
   }
 }
 

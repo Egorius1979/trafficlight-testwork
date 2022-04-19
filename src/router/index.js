@@ -1,8 +1,11 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import Table from '../views/Table.vue';
+import Table from '../components/Table.vue';
 
 Vue.use(VueRouter);
+
+// console.log(VueRouter.START_LOCATION);
+// console.log(vm.isFiltered);
 
 const routes = [
   {
@@ -17,7 +20,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "about" */ '../views/Table.vue'),
+      import(/* webpackChunkName: "about" */ '../components/Table.vue'),
   },
 ];
 

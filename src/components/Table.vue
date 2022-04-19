@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Filters from '@/views/Filters';
+import Filters from '@/components/Filters';
 export default {
   name: 'Table',
   components: { Filters },
@@ -41,11 +41,11 @@ export default {
       isFiltered: false,
     };
   },
-  mounted() {
-    if (this.$route.name !== 'Home') {
-      this.$router.push({ name: 'Home' });
-    }
-  },
+  // mounted() {
+  //   if (this.$route.name !== 'Home') {
+  //     this.$router.push({ name: 'Home' });
+  //   }
+  // },
   methods: {
     filterMembers(login, from, to, rank) {
       this.members = this.fullMembersArray
@@ -100,7 +100,6 @@ export default {
           : this.members.sort((a, b) => a[key] - b[key]);
       }
       this.$store.commit('SORTING', key);
-      console.log('table sorting: ', this.members);
     },
   },
   watch: {
