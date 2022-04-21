@@ -74,9 +74,6 @@ export default {
     rank() {
       return this.$store.state.rank;
     },
-    isFilters() {
-      return this.$store.state.isSorting;
-    },
   },
   methods: {
     setInitialState() {
