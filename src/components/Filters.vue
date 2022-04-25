@@ -17,6 +17,7 @@
       <label>
         <span>статус:</span>
         <select v-model="rank">
+          <option value="">-- ВСЕ --</option>
           <option v-for="rank in ranksArray" :key="rank">
             {{ rank }}
           </option>
@@ -24,22 +25,7 @@
       </label>
     </div>
     <div class="flex">
-      <button @click="$emit('filter-members', login, from, to, rank)">
-        применить
-      </button>
-      <router-link
-        class="url"
-        :to="{
-          name: 'Filtered',
-          query: {
-            login: `${login}`,
-            from: `${from}`,
-            to: `${to}`,
-            rank: `${rank}`,
-          },
-        }"
-        >URL</router-link
-      >
+      <button @click="setFilters">применить</button>
     </div>
   </div>
 </template>
@@ -47,12 +33,13 @@
 <script>
 export default {
   name: 'Filtered',
+  props: ['field', 'filteredFieldCounter'],
   data() {
     return {
-      login: '',
-      from: null,
-      to: null,
-      rank: '',
+      login: this.$route.query.login || '',
+      from: +this.$route.query.from || null,
+      to: +this.$route.query.to || null,
+      rank: this.$route.query.rank || '',
       ranksArray: this.$store.state.members.reduce(
         (acc, member) =>
           acc.find((it) => it === member.rank) ? acc : [...acc, member.rank],
@@ -66,7 +53,16 @@ export default {
       this.from = null;
       this.to = null;
       this.rank = '';
-      this.$emit('initial-value', this.login, this.from, this.to, this.rank);
+      this.$emit('initial-value');
+    },
+    setFilters() {
+      this.$store.commit('SET_FILTERS', {
+        login: this.login,
+        from: this.from,
+        to: this.to,
+        rank: this.rank,
+      });
+      this.$emit('filter-members');
     },
   },
   watch: {

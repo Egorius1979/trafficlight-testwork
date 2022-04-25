@@ -2,7 +2,11 @@
   <div class="home">
     <table class="table">
       <tr>
-        <th v-for="column in tabColumns" :key="column" @click="sorting(column)">
+        <th
+          v-for="column in tabColumns"
+          :key="column"
+          @click="sortByClick(column)"
+        >
           <div class="flex">
             <span
               class="arrow"
@@ -15,14 +19,19 @@
           </div>
         </th>
       </tr>
-      <tr v-for="member in members || fullMembersArray" :key="member.id">
+      <tr v-for="member in members" :key="member.id">
         <td :aria-label="tabColumns[0]">{{ member.id }}</td>
         <td :aria-label="tabColumns[1]">{{ member.login }}</td>
         <td :aria-label="tabColumns[2]">{{ member.confirmedOrder }}</td>
         <td :aria-label="tabColumns[3]">{{ member.rank }}</td>
       </tr>
     </table>
-    <filters @filter-members="filterMembers" @initial-value="setInitialState" />
+    <filters
+      @filter-members="filterMembers"
+      @initial-value="setInitialState"
+      :field="field"
+      :filteredFieldCounter="filteredFieldCounter"
+    />
   </div>
 </template>
 
@@ -34,54 +43,82 @@ export default {
   data() {
     return {
       tabColumns: ['Место', 'Логин', 'Подтвержденные заказы', 'Статус'],
-      fullMembersArray: this.$store.state.members,
-      members: null,
+      isInitialFromFiltered: false,
+      members: this.$store.state.members,
       field: 'Место',
       filteredFieldCounter: 1,
-      isFiltered: false,
     };
   },
-  // mounted() {
-  //   if (this.$route.name !== 'Home') {
-  //     this.$router.push({ name: 'Home' });
-  //   }
-  // },
-  methods: {
-    filterMembers(login, from, to, rank) {
-      this.members = this.fullMembersArray
-        .filter((member) => member.login.includes(login.toLowerCase()))
-        .filter((member) => {
-          if (!from && !to) {
-            return member;
-          }
-          if (!to) {
-            return member.confirmedOrder >= from;
-          }
-          return member.confirmedOrder >= from && member.confirmedOrder <= to;
-        })
-        .filter((member) =>
-          member.rank.toLowerCase().includes(rank.toLowerCase())
-        );
-      this.isFiltered = true;
+  mounted() {
+    if (this.$route.name === 'Filtered') {
+      this.isInitialFromFiltered = true;
+      this.$store.commit('SET_FILTERS', {
+        login: this.$route.query.login,
+        from: !+this.$route.query.from ? null : +this.$route.query.from,
+        to: !+this.$route.query.to ? null : +this.$route.query.to,
+        rank: this.$route.query.rank,
+      });
+      this.filterMembers();
+    }
+  },
+  computed: {
+    login() {
+      return this.$store.state.login;
     },
+    from() {
+      return this.$store.state.from;
+    },
+    to() {
+      return this.$store.state.to;
+    },
+    rank() {
+      return this.$store.state.rank;
+    },
+  },
+  methods: {
     setInitialState() {
-      this.isFiltered = false;
       this.field = 'Место';
       this.filteredFieldCounter = 1;
-      this.members = null;
-      this.$store.commit('SET_INITIAL_ARRAY');
+      this.members = this.$store.state.members;
     },
-    sorting(column) {
+    filterMembers() {
+      this.members = this.$store.state.members
+        .filter((member) => member.login.includes(this.login.toLowerCase()))
+        .filter((member) => {
+          if (!this.from && !this.to) {
+            return member;
+          }
+          if (!this.to) {
+            return member.confirmedOrder >= this.from;
+          }
+          return (
+            member.confirmedOrder >= this.from &&
+            member.confirmedOrder <= this.to
+          );
+        })
+        .filter((member) =>
+          member.rank.toLowerCase().includes(this.rank.toLowerCase())
+        );
+      if (this.isInitialFromFiltered) {
+        this.field = this.$route.query.field;
+      }
+      this.sorting(this.field);
+      this.push();
+    },
+    sortByClick(column) {
       if (this.field === column) {
         this.filteredFieldCounter += 1;
-        if (this.isFiltered) {
-          this.members.reverse();
-        }
-        return this.$store.commit('REVERSE');
+        return this.reverseArray();
       }
-
       this.field = column;
       this.filteredFieldCounter = 1;
+      this.sorting(column);
+    },
+    sorting(column) {
+      if (this.isInitialFromFiltered) {
+        this.filteredFieldCounter = +this.$route.query.filteredFieldCounter;
+      }
+
       if (column === 'Логин') {
         return this.sorting1('login');
       }
@@ -94,24 +131,36 @@ export default {
       return this.sorting1('confirmedOrder');
     },
     sorting1(key) {
-      if (this.isFiltered) {
-        typeof this.members[0][key] === 'string'
-          ? this.members.sort((a, b) => a[key].localeCompare(b[key]))
-          : this.members.sort((a, b) => a[key] - b[key]);
+      typeof this.members[0][key] === 'string'
+        ? this.members.sort((a, b) => a[key].localeCompare(b[key]))
+        : this.members.sort((a, b) => a[key] - b[key]);
+
+      if (!(this.filteredFieldCounter % 2)) {
+        this.reverseArray();
       }
-      this.$store.commit('SORTING', key);
+      if (this.isInitialFromFiltered) {
+        this.isInitialFromFiltered = false;
+      }
+      this.push();
     },
-  },
-  watch: {
-    $route() {
-      if (this.$route.name === 'Filtered') {
-        this.filterMembers(
-          this.$route.query.login,
-          !+this.$route.query.from ? 0 : +this.$route.query.from,
-          !+this.$route.query.to ? 0 : +this.$route.query.to,
-          this.$route.query.rank
-        );
-      }
+    reverseArray() {
+      this.push();
+      return this.members.reverse();
+    },
+    push() {
+      this.$router
+        .push({
+          name: 'Filtered',
+          query: {
+            login: this.login,
+            from: `${this.from}`,
+            to: `${this.to}`,
+            rank: this.rank,
+            field: this.field,
+            filteredFieldCounter: this.filteredFieldCounter,
+          },
+        })
+        .catch(() => {});
     },
   },
 };
